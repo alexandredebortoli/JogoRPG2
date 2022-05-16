@@ -126,9 +126,9 @@ Fase CriarFase(int num_inimigos, Inimigo* inimigos, int altura_mapa, int largura
 
 void Movimentar(Jogador &jogador, Mapa mapa) {
     char escolha;
-    cout<< "Posicao atual do jogador: x = " << jogador.pos_largura << " y = " << jogador.pos_altura << endl;
-    cout<< "Mapa: x = " << mapa.largura << " y = " << mapa.altura << endl;
-    cout << "W -> cima\nS -> baixo\nA -> esquerda\nD -> direita\n Escolha: ";
+    cout<< "\nPosicao atual do jogador: x = " << (jogador.pos_largura + 1) << " y = " << (jogador.pos_altura + 1) << endl;
+    cout<< "Tamanho mapa: x = " << mapa.largura << " y = " << mapa.altura << endl;
+    cout << "W -> cima\nS -> baixo\nA -> esquerda\nD -> direita\nEscolha: ";
     cin >> escolha;
     escolha = tolower(escolha);
 
@@ -139,10 +139,9 @@ void Movimentar(Jogador &jogador, Mapa mapa) {
             }
             else{
                 if(jogador.pos_altura == 0){
-                    cout<< "Voce está na borda do mapa!!" << endl;
-                }
-                if(mapa.matriz_mapa[jogador.pos_largura][jogador.pos_altura - 1].caminho_pedra){
-                    cout<< "Voce encontrou uma pedra no mapa!!" << endl;
+                    cout<< "Você está na borda do mapa!" << endl;
+                } else if(mapa.matriz_mapa[jogador.pos_largura][jogador.pos_altura - 1].caminho_pedra){
+                    cout<< "Você encontrou uma pedra no mapa!" << endl;
                 }
             }
             break;
@@ -152,10 +151,9 @@ void Movimentar(Jogador &jogador, Mapa mapa) {
             }
             else {
                 if (jogador.pos_altura == (mapa.altura - 1)) {
-                    cout << "Voce está na borda do mapa!!" << endl;
-                }
-                if (mapa.matriz_mapa[jogador.pos_largura][jogador.pos_altura + 1].caminho_pedra) {
-                    cout << "Voce encontrou uma pedra no mapa!!" << endl;
+                    cout << "Você está na borda do mapa!" << endl;
+                } else if (mapa.matriz_mapa[jogador.pos_largura][jogador.pos_altura + 1].caminho_pedra) {
+                    cout << "Você encontrou uma pedra no mapa!" << endl;
                 }
             }
             break;
@@ -165,10 +163,9 @@ void Movimentar(Jogador &jogador, Mapa mapa) {
             }
             else {
                 if (jogador.pos_largura == 0) {
-                    cout << "Voce está na borda do mapa!!" << endl;
-                }
-                if (mapa.matriz_mapa[jogador.pos_largura - 1][jogador.pos_altura].caminho_pedra) {
-                    cout << "Voce encontrou uma pedra no mapa!!" << endl;
+                    cout << "Você está na borda do mapa!" << endl;
+                } else if (mapa.matriz_mapa[jogador.pos_largura - 1][jogador.pos_altura].caminho_pedra) {
+                    cout << "Você encontrou uma pedra no mapa!" << endl;
                 }
             }
             break;
@@ -178,10 +175,9 @@ void Movimentar(Jogador &jogador, Mapa mapa) {
             }
             else {
                 if (jogador.pos_largura == (mapa.largura - 1)) {
-                    cout << "Voce está na borda do mapa!!" << endl;
-                }
-                if (mapa.matriz_mapa[jogador.pos_largura + 1][jogador.pos_altura].caminho_pedra) {
-                    cout << "Voce encontrou uma pedra no mapa!!" << endl;
+                    cout << "Você está na borda do mapa!" << endl;
+                } else if (mapa.matriz_mapa[jogador.pos_largura + 1][jogador.pos_altura].caminho_pedra) {
+                    cout << "Você encontrou uma pedra no mapa!" << endl;
                 }
             }
             break;
@@ -210,7 +206,7 @@ Vitima ataque(Atacante atacante, Vitima vitima)
 
 bool batalhar(Jogador &jogador, Fase &fase, Inimigo inimigo)
 {
-    cout << "\nEntrando em " << fase.nome << "...\n" << endl;
+    cout << "\nBatalhando em " << fase.nome << "...\n" << endl;
     cout << "- Jogador -\nVida: " << jogador.vida << "\nDano: " << jogador.arma.minDano << " - " << jogador.arma.maxDano << endl;
     cout << "----------------\n" << endl;
     cout << "Inimigo: " << inimigo.nome << endl;
@@ -234,6 +230,7 @@ bool batalhar(Jogador &jogador, Fase &fase, Inimigo inimigo)
 
 int main()
 {
+    cout << "- - - - Bem-vindo ao Universo Marvel - - - -" << endl;
     srand(time(NULL));
     Jogador novoJogador;
     novoJogador = jogador();
@@ -243,6 +240,10 @@ int main()
         if(novaFase.mapa_fase.matriz_mapa[novoJogador.pos_largura][novoJogador.pos_altura].caminho_inimigo) {
             jogadorPerdeu = batalhar(novoJogador, novaFase, *novaFase.mapa_fase.matriz_mapa[novoJogador.pos_largura][novoJogador.pos_altura].inimigo_bloco);
         }
-        Movimentar(novoJogador, novaFase.mapa_fase);
+        if(novoJogador.vida <= 0) {
+            cout << "\nJogador Morreu!" << endl;
+        } else {
+            Movimentar(novoJogador, novaFase.mapa_fase);
+        }
     }
 }
