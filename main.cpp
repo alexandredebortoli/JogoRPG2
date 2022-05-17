@@ -20,6 +20,7 @@ struct Inimigo
     string nome;
     int vida;
     Arma arma;
+    bool morreu;
 };
 struct Bloco
 {
@@ -38,6 +39,7 @@ struct Fase
     string nome;
     Mapa mapa_fase;
     int num_inimigos;
+    int inimigos_restantes;
     Inimigo* inimigos;
 };
 
@@ -46,7 +48,7 @@ Jogador jogador()
 {
     Jogador novoJogador;
 
-    novoJogador.vida = 300;
+    novoJogador.vida = 320;
     novoJogador.arma.minDano = 1;
     novoJogador.arma.maxDano = 20;
     novoJogador.pos_largura = 0;
@@ -54,22 +56,23 @@ Jogador jogador()
 
     return novoJogador;
 }
-void declararInimigos(Inimigo &inimigo, string nome, int vida, int minDano, int maxDano)
+void declararInimigos(Inimigo &inimigo, string nome, int vida, int minDano, int maxDano, bool morreu)
 {
     inimigo.nome = nome;
     inimigo.vida = vida;
     inimigo.arma.minDano = minDano;
     inimigo.arma.maxDano = maxDano;
+    inimigo.morreu = morreu;
 }
 
 Inimigo* CriarInimigos()
 {
     Inimigo *inimigos = new Inimigo[5];
-    declararInimigos(inimigos[0], "Mandarim", 10, 2, 10);
-    declararInimigos(inimigos[1], "Caveira Vermelha", 20, 2, 20);
-    declararInimigos(inimigos[2], "Killmonger", 30, 2, 30);
-    declararInimigos(inimigos[3], "Loki", 40, 2, 40);
-    declararInimigos(inimigos[4], "Thanos", 50, 2, 50);
+    declararInimigos(inimigos[0], "Mandarim", 10, 2, 10, false);
+    declararInimigos(inimigos[1], "Caveira Vermelha", 20, 2, 20, false);
+    declararInimigos(inimigos[2], "Killmonger", 30, 2, 30, false);
+    declararInimigos(inimigos[3], "Loki", 40, 2, 40, false);
+    declararInimigos(inimigos[4], "Thanos", 50, 2, 50, false);
 
     return inimigos;
 }
@@ -105,6 +108,7 @@ Fase CriarFase(int num_inimigos, Inimigo* inimigos, int altura_mapa, int largura
     nova_fase.nome = "Avengers";
     nova_fase.mapa_fase = CriarMapa(altura_mapa, largura_mapa);
     nova_fase.num_inimigos = num_inimigos;
+    nova_fase.inimigos_restantes = num_inimigos;
     nova_fase.inimigos = new Inimigo[nova_fase.num_inimigos];
     nova_fase.inimigos = inimigos;
 
@@ -115,7 +119,7 @@ Fase CriarFase(int num_inimigos, Inimigo* inimigos, int altura_mapa, int largura
         do {
             rand_altura = rand() % nova_fase.mapa_fase.altura;
             rand_largura = rand() % nova_fase.mapa_fase.largura;
-        } while (nova_fase.mapa_fase.matriz_mapa[rand_largura][rand_altura].caminho_inimigo and nova_fase.mapa_fase.matriz_mapa[rand_largura][rand_altura].caminho_pedra);
+        } while (nova_fase.mapa_fase.matriz_mapa[rand_largura][rand_altura].caminho_inimigo && nova_fase.mapa_fase.matriz_mapa[rand_largura][rand_altura].caminho_pedra);
 
         nova_fase.mapa_fase.matriz_mapa[rand_largura][rand_altura].caminho_inimigo = true;
         nova_fase.mapa_fase.matriz_mapa[rand_largura][rand_altura].inimigo_bloco = &nova_fase.inimigos[i - 1];
@@ -124,10 +128,11 @@ Fase CriarFase(int num_inimigos, Inimigo* inimigos, int altura_mapa, int largura
     return nova_fase;
 }
 
-void Movimentar(Jogador &jogador, Mapa mapa) {
+void Movimentar(Jogador &jogador, Mapa mapa, Fase fase) {
     char escolha;
     cout<< "\nPosicao atual do jogador: x = " << (jogador.pos_largura + 1) << " y = " << (jogador.pos_altura + 1) << endl;
     cout<< "Tamanho mapa: x = " << mapa.largura << " y = " << mapa.altura << endl;
+    cout<< "Inimigos restantes: " << fase.inimigos_restantes << " / " << fase.num_inimigos  << endl;
     cout << "W -> cima\nS -> baixo\nA -> esquerda\nD -> direita\nEscolha: ";
     cin >> escolha;
     escolha = tolower(escolha);
@@ -204,7 +209,7 @@ Vitima ataque(Atacante atacante, Vitima vitima)
     return vitima;
 }
 
-bool batalhar(Jogador &jogador, Fase &fase, Inimigo inimigo)
+bool batalhar(Jogador &jogador, Fase &fase, Inimigo &inimigo)
 {
     cout << "\nBatalhando em " << fase.nome << "...\n" << endl;
     cout << "- Jogador -\nVida: " << jogador.vida << "\nDano: " << jogador.arma.minDano << " - " << jogador.arma.maxDano << endl;
@@ -225,6 +230,7 @@ bool batalhar(Jogador &jogador, Fase &fase, Inimigo inimigo)
             return true;
         }
     }
+    inimigo.morreu = true;
     return false;
 }
 
@@ -236,14 +242,19 @@ int main()
     novoJogador = jogador();
     Fase novaFase = CriarFase(5, CriarInimigos(), 5, 10);
     bool jogadorPerdeu = false;
-    while(!jogadorPerdeu){
+    while(!jogadorPerdeu && novaFase.inimigos_restantes > 0){
         if(novaFase.mapa_fase.matriz_mapa[novoJogador.pos_largura][novoJogador.pos_altura].caminho_inimigo) {
-            jogadorPerdeu = batalhar(novoJogador, novaFase, *novaFase.mapa_fase.matriz_mapa[novoJogador.pos_largura][novoJogador.pos_altura].inimigo_bloco);
+            if(!novaFase.mapa_fase.matriz_mapa[novoJogador.pos_largura][novoJogador.pos_altura].inimigo_bloco->morreu) {
+                jogadorPerdeu = batalhar(novoJogador, novaFase, *novaFase.mapa_fase.matriz_mapa[novoJogador.pos_largura][novoJogador.pos_altura].inimigo_bloco);
+                novaFase.inimigos_restantes--;
+            }
         }
-        if(novoJogador.vida <= 0) {
+        if(jogadorPerdeu) {
             cout << "\nJogador Morreu!" << endl;
+        } else if(novaFase.inimigos_restantes > 0){
+            Movimentar(novoJogador, novaFase.mapa_fase, novaFase);
         } else {
-            Movimentar(novoJogador, novaFase.mapa_fase);
+            cout << "\n Você Venceu!" << endl;
         }
     }
 }
